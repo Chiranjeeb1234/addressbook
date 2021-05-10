@@ -21,6 +21,13 @@ pipeline{
             }
             }
         }
+        stage ('test errorcatch'){
+        steps{
+        sh """
+        echo "demo"
+        """
+        }
+        }
         stage ('JUNIT Test'){
             steps{
                 sh """
