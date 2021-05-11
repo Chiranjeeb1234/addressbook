@@ -1,0 +1,60 @@
+pipeline{
+    agent{
+        label 'master'
+    }
+    tools{
+        maven 'mymaven'
+        jdk 'myjava'
+    }
+    environment{
+        SLACK_NAME= '#Demo_DEVOPS'
+    }
+    stages{
+        stage ('Checkout the code'){
+            steps{
+                git branch: 'main', url:'https://github.com/Chiranjeeb1234/spring-petclinic.git'
+            }
+        }
+        stage ('Parallel block'){
+            parallel{
+                stage ('Code validate'){
+                    steps{
+                        sh """
+                        mvn validate
+                        """
+                    }
+                }
+        stage ('Code compile'){
+            steps{
+                sh """
+                mvn compile
+                """
+            }
+        }
+            }
+        }
+        stage ('JUNIT Test'){
+            when{ expression {return env.TEST.contains('YES') || return env.ALL.contains('YES')}}
+            steps{
+                sh """
+                mvn test
+                """
+            }
+        }
+        stage ('Packaging'){
+            steps{
+                sh """
+                mvn package
+                """
+            }
+        }
+    }
+    post{
+        always{
+            junit 'target/surefire-reports/**/*.xml'
+        }
+    }
+    failure{
+        slackSend baseURL: <SLACK_URL>, channel: env.SLACK_NAME, message: "The build is failure"
+    }
+}
