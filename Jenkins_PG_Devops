@@ -9,26 +9,29 @@ pipeline{
     stages{
         stage ('Checkout the code'){
             steps{
-                git branch: 'master', url:'https://github.com/Chiranjeeb1234/addressbook.git'
+                git branch: 'main', url:'https://github.com/Chiranjeeb1234/spring-petclinic.git'
             }
         }
+        stage ('Parallel block'){
+            parallel{
+                stage ('Code validate'){
+                    steps{
+                        sh """
+                        mvn validate
+                        """
+                    }
+                }
         stage ('Code compile'){
             steps{
-                catchError (buildResult: 'SUCCESS', stageResult:'FAILURE'){
                 sh """
                 mvn compile
                 """
             }
-            }
         }
-        stage ('test errorcatch'){
-            steps{
-                sh """
-                echo "demo"
-                """
             }
         }
         stage ('JUNIT Test'){
+            when{ expression {return env.TEST.contains('YES') || return env.ALL.contains('YES')}}
             steps{
                 sh """
                 mvn test
@@ -41,6 +44,11 @@ pipeline{
                 mvn package
                 """
             }
+        }
+    }
+    post{
+        always{
+            junit 'target/surefire-reports/**/*.xml'
         }
     }
 }
