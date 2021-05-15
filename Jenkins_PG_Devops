@@ -30,14 +30,7 @@ pipeline{
         }
             }
         }
-        stage ('JUNIT Test'){
-            when{ expression{ return env.TEST.contains('YES')}}
-            steps{
-                sh """
-                mvn test
-                """
-            }
-        }
+        
         stage ('Packaging'){
             steps{
                 sh """
