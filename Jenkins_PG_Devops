@@ -1,0 +1,54 @@
+pipeline{
+    agent{
+        label 'master'
+    }
+    tools{
+        maven 'mymaven'
+        jdk 'myjava'
+    }
+    stages{
+        stage ('Checkout the code'){
+            steps{
+                git branch: 'java6', url:'https://github.com/Chiranjeeb1234/addressbook.git'
+            }
+        }
+        stage ('Parallel block'){
+            parallel{
+                stage ('Code validate'){
+                    steps{
+                        sh """
+                        mvn validate
+                        """
+                    }
+                }
+        stage ('Code compile'){
+            steps{
+                sh """
+                mvn compile
+                """
+            }
+        }
+            }
+        }
+        stage ('JUNIT Test'){
+            when{ expression{ return env.TEST.contains('YES')}}
+            steps{
+                sh """
+                mvn test
+                """
+            }
+        }
+        stage ('Packaging'){
+            steps{
+                sh """
+                mvn package
+                """
+            }
+        }
+    }
+    post{
+        always{
+            junit 'target/surefire-reports/**/*.xml'
+        }
+    }
+}
